@@ -90,3 +90,33 @@ def read_dataset(dataset_path,split_index=0.7):
 
     return train_files,val_files,test_files
 
+def read_fold_dataset(dataset_path,fold_num,max_fold,split_index=0.7):
+    train_files = []
+    val_files = []
+    test_files = []
+    dataset_list = os.listdir(dataset_path)
+    
+    for dataset_folder in dataset_list:
+        signals_path = dataset_path+dataset_folder+'/'
+        signals_list = os.listdir(signals_path)
+        random.shuffle(signals_list)
+        length = len(signals_list)//2
+        train_length = int(length*split_index)
+        val_length = int(length*((1-split_index)/2))
+        # print(f'kfold_length = {(train_length + val_length)//max_fold} // max_fold = {max_fold} // current_fold = {fold_num}')
+        fold_length = (train_length + val_length)//max_fold
+
+        index = 0
+        for signals_filename in signals_list:
+            if signals_filename.split('.')[-1] == 'jpg':
+                signals_file = signals_path + signals_filename
+                if train_length+val_length > index:
+                    if fold_num*fold_length <= index and (fold_num+1)*fold_length > index:
+                        val_files.append(signals_file)
+                    else:
+                        train_files.append(signals_file)
+                else:
+                    test_files.append(signals_file)
+                index += 1
+    return train_files,val_files,test_files
+
